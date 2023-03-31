@@ -1,0 +1,96 @@
+---
+title: "8131 HW5"
+output: html_document
+date: "2023-03-27"
+---
+```{r}
+install.packages("pscl")
+library(pscl)
+library(tidyverse)
+```
+
+# problem1
+# a
+```{r}
+# get the dataset
+crab = read.table("/Users/yanfeng/Desktop/CU/研一下/P8131/HW5/HW5-crab.txt", header = TRUE)[,2:6]
+# fit the poisson model with only one predictor
+crab_glm1 = glm(Sa~W, family=poisson, data=crab)
+summary(crab_glm)
+```
+
+```{r}
+res_glm1=residuals(crab_glm,type='pearson',data=crab) 
+G1=sum(res_glm1^2) 
+pval1=1-pchisq(G1,df=crab_glm$df.residual) 
+coef(crab_glm1)
+confint(crab_glm1)
+```
+
+# b
+```{r}
+# fit the poisson model with two predictors
+crab_glm2 = glm(Sa~W + Wt, family=poisson, data=crab)
+summary(crab_glm2)
+res_glm2=residuals(crab_glm2,type='pearson',data=crab) 
+G2=sum(res_glm2^2) 
+pval2=1-pchisq(G2,df=crab_glm2$df.residual) 
+coef(crab_glm2)
+confint(crab_glm2)
+
+# compare glm1 and glm2
+ts=crab_glm1$deviance-crab_glm2$deviance
+p_com=1-pchisq(ts,df=1)
+```
+
+# c
+```{r}
+# check for the over-dispersion
+crab_phi = G2/(crab_glm2$df.residual)
+# phi is much greater than 1, so there is an over-dispersion problem
+```
+
+```{r}
+# fit the model with over-dispersion factor
+# crab_glm3 = glm(Sa~W + Wt, family=quasipoisson(link = "log"), data=crab)
+summary(crab_glm2,dispersion = crab_phi)
+G3 = crab_glm2$deviance/crab_phi
+pval_disp <- 1-pchisq(G3, df = crab_glm2$df.residual)
+```
+
+# problem 2
+# a
+```{r}
+# get the dataset
+parasite = read.table("/Users/yanfeng/Desktop/CU/研一下/P8131/HW5/HW5-parasite.txt", header = TRUE)[,2:11]
+parasite$Year = as.factor(parasite$Year)
+parasite$Area = as.factor(parasite$Area)
+```
+
+```{r}
+# fit the poisson model with only three predictors
+para_glm1 = glm(Intensity ~ Area + Year + Length, family = poisson, data = parasite)
+summary(para_glm1)
+coef(para_glm1)
+confint(para_glm1)
+```
+
+# b
+```{r}
+# test the goodness of fit
+para_res=residuals(para_glm1,type='pearson',data=parasite) 
+para_pval1=1-pchisq(sum(para_res^2),df=para_glm1$df.residual) 
+```
+
+# c
+```{r}
+para.zif <- zeroinfl(Intensity ~ Year + Length | Area, data = parasite) 
+summary(para.zif)
+coef(para.zif)
+confint(para.zif)
+```
+
+
+
+
+
